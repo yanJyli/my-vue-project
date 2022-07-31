@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div class="navbar">
     <div class="navbar__btns">
@@ -6,8 +7,12 @@
         >Посты</my-button
       >
       <my-button @click="$router.push('/about')">О сайте</my-button>
-      <my-button @click="$router.push('/store')" style="margin-left: 15px">Хранилище</my-button>
-    
+      <my-button @click="$router.push('/store')" style="margin-left: 15px"
+        >Хранилище</my-button
+      >
+      <my-button @click="$router.push('/composition')" style="margin-left: 15px"
+        >Composition</my-button
+      >
     </div>
   </div>
 </template>

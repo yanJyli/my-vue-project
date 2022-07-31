@@ -1,5 +1,5 @@
 <template>
-  <div >
+  <div>
     <h1>Страница с постами</h1>
     <my-input v-focus v-model="searchQuery" placeholder="Поиск..."> </my-input>
     <div class="app__btns">
@@ -18,18 +18,6 @@
     ></post-list>
     <div v-else>Идет загрузка постов...</div>
     <div class="observer" v-intersection="loadMorePosts"></div>
-
-    <!-- <div class="page__wrapper">
-      <div
-        v-for="pageNumber in totalPages"
-        :key="pageNumber"
-        class="page"
-        :class="{ 'current-page': page === pageNumber }"
-        @click="changePage(pageNumber)"
-      >
-        {{ pageNumber }}
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -115,25 +103,9 @@ export default {
         alert("Ошибка");
       }
     },
-    // changePage(pageNumber) {
-    //   this.page = pageNumber
-    //   this.fetchPost();
-    // }
   },
   mounted() {
     this.fetchPost();
-
-    // const options = {
-    //   rootMargin: "0px",
-    //   threshold: 1.0,
-    // };
-    // const callback = (entries) => {
-    //   if (entries[0].isIntersecting && this.page < this.totalPages) {
-    //     this.loadMorePosts();
-    //   }
-    // };
-    // const observer = new IntersectionObserver(callback, options);
-    // observer.observe(this.$refs.observer);
   },
 
   computed: {
@@ -152,7 +124,6 @@ export default {
 </script>
 
 <style>
-
 .app__btns {
   display: flex;
   justify-content: space-between;

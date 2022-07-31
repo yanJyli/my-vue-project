@@ -1,66 +1,76 @@
 <template>
-  <div >
+  <div>
     <h1>Страница с постами</h1>
-    <my-input v-focus v-model="searchQuery" placeholder="Поиск..."> </my-input>
+    <my-input
+      :model-value="searchQuery"
+      @update:model-value="setSearchQuery"
+      placeholder="Поиск...."
+      v-focus
+    />
     <div class="app__btns">
-      <my-button @click="showDialog">Создать пост</my-button>
-      <my-select v-model="selectedSort" :options="sortOptions"></my-select>
+      <my-button @click="showDialog"> Создать пост </my-button>
+      <my-select
+        :model-value="selectedSort"
+        @update:model-value="setSelectedSort"
+        :options="sortOptions"
+      />
     </div>
-
     <my-dialog v-model:show="dialogVisible">
-      <post-form @create="createPost"></post-form>
+      <post-form @create="createPost" />
     </my-dialog>
-
     <post-list
-      :posts="sortedAndSearchedPost"
+      :posts="sortedAndSearchedPosts"
       @remove="removePost"
-      v-if="!isPostLoading"
-    ></post-list>
-    <div v-else>Идет загрузка постов...</div>
-    <div class="observer" v-intersection="loadMorePosts"></div>
-
-    <!-- <div class="page__wrapper">
+      v-if="!isPostsLoading"
+    />
+    <div v-else>Идет загрузка...</div>
+    <div v-intersection="loadMorePosts" class="observer"></div>
+    <div class="page__wrapper">
       <div
         v-for="pageNumber in totalPages"
         :key="pageNumber"
         class="page"
-        :class="{ 'current-page': page === pageNumber }"
+        :class="{
+          'current-page': page === pageNumber,
+        }"
         @click="changePage(pageNumber)"
       >
         {{ pageNumber }}
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <script>
-import PostForm from "@/components/PostForm.vue";
-import PostList from "@/components/PostList.vue";
-import axios from "axios";
-
+import PostForm from "@/components/PostForm";
+import PostList from "@/components/PostList";
+import MyButton from "@/components/UI/MyButton";
+import MySelect from "@/components/UI/MySelect";
+import MyInput from "@/components/UI/MyInput";
+import { mapState, mapGetters, mapActions, mapMutations } from "vuex";
 export default {
   components: {
-    PostForm,
+    MyInput,
+    MySelect,
+    MyButton,
     PostList,
+    PostForm,
   },
-
   data() {
     return {
-      posts: [],
       dialogVisible: false,
-      isPostLoading: false,
-      selectedSort: "",
-      sortOptions: [
-        { value: "title", name: "По название" },
-        { value: "body", name: "По описанию" },
-      ],
-      searchQuery: "",
-      page: 1,
-      limit: 10,
-      totalPages: 0,
     };
   },
   methods: {
+    ...mapMutations({
+      setPage: "post/setPage",
+      setSearchQuery: "post/setSearchQuery",
+      setSelectedSort: "post/setSelectedSort",
+    }),
+    ...mapActions({
+      loadMorePosts: "post/loadMorePosts",
+      fetchPosts: "post/fetchPosts",
+    }),
     createPost(post) {
       this.posts.push(post);
       this.dialogVisible = false;
@@ -71,106 +81,49 @@ export default {
     showDialog() {
       this.dialogVisible = true;
     },
-    async fetchPost() {
-      try {
-        this.isPostLoading = true;
-        setTimeout(async () => {
-          const response = await axios.get(
-            "https://jsonplaceholder.typicode.com/posts",
-            {
-              params: {
-                _page: this.page,
-                _limit: this.limit,
-              },
-            }
-          );
-          this.totalPages = Math.ceil(
-            response.headers["x-total-count"] / this.limit
-          );
-          this.posts = response.data;
-          this.isPostLoading = false;
-        }, 1000);
-      } catch (e) {
-        alert("Ошибка");
-      }
-    },
-
-    async loadMorePosts() {
-      try {
-        this.page += 1;
-        const response = await axios.get(
-          "https://jsonplaceholder.typicode.com/posts",
-          {
-            params: {
-              _page: this.page,
-              _limit: this.limit,
-            },
-          }
-        );
-        this.totalPages = Math.ceil(
-          response.headers["x-total-count"] / this.limit
-        );
-        this.posts = [...this.posts, ...response.data];
-      } catch (e) {
-        alert("Ошибка");
-      }
-    },
-    // changePage(pageNumber) {
-    //   this.page = pageNumber
-    //   this.fetchPost();
-    // }
   },
   mounted() {
-    this.fetchPost();
-
-    // const options = {
-    //   rootMargin: "0px",
-    //   threshold: 1.0,
-    // };
-    // const callback = (entries) => {
-    //   if (entries[0].isIntersecting && this.page < this.totalPages) {
-    //     this.loadMorePosts();
-    //   }
-    // };
-    // const observer = new IntersectionObserver(callback, options);
-    // observer.observe(this.$refs.observer);
+    this.fetchPosts();
   },
-
   computed: {
-    sortedPosts() {
-      return [...this.posts].sort((post1, post2) =>
-        post1[this.selectedSort]?.localeCompare(post2[this.selectedSort])
-      );
-    },
-    sortedAndSearchedPost() {
-      return this.sortedPosts.filter((post) =>
-        post.title.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
-    },
+    ...mapState({
+      posts: (state) => state.post.posts,
+      isPostsLoading: (state) => state.post.isPostsLoading,
+      selectedSort: (state) => state.post.selectedSort,
+      searchQuery: (state) => state.post.searchQuery,
+      page: (state) => state.post.page,
+      limit: (state) => state.post.limit,
+      totalPages: (state) => state.post.totalPages,
+      sortOptions: (state) => state.post.sortOptions,
+    }),
+    ...mapGetters({
+      sortedPosts: "post/sortedPosts",
+      sortedAndSearchedPosts: "post/sortedAndSearchedPosts",
+    }),
   },
+  watch: {},
 };
 </script>
 
 <style>
-
 .app__btns {
+  margin: 15px 0;
   display: flex;
   justify-content: space-between;
-  margin: 10px;
 }
 .page__wrapper {
   display: flex;
   margin-top: 15px;
 }
 .page {
-  border: 0.5px solid;
+  border: 1px solid black;
   padding: 10px;
 }
 .current-page {
-  border: 2px solid;
+  border: 2px solid teal;
 }
 .observer {
   height: 30px;
-  background: grey;
+  background: green;
 }
 </style>
